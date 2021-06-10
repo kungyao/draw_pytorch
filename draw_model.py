@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
-from utility import *
 import torch.functional as F
+
+from utility import *
 
 class DrawModel(nn.Module):
     def __init__(self,T,A,B,z_size,N,dec_size,enc_size):
@@ -28,8 +29,6 @@ class DrawModel(nn.Module):
         self.dec_w_linear = nn.Linear(dec_size,N*N)
 
         self.sigmoid = nn.Sigmoid()
-
-
 
     def normalSample(self):
         return Variable(torch.randn(self.batch_size,self.z_size))
@@ -67,7 +66,7 @@ class DrawModel(nn.Module):
 
         enc_state = Variable(torch.zeros(self.batch_size,self.enc_size))
         dec_state = Variable(torch.zeros(self.batch_size, self.dec_size))
-        for t in xrange(self.T):
+        for t in range(self.T):
             c_prev = Variable(torch.zeros(self.batch_size,self.A * self.B)) if t == 0 else self.cs[t-1]
             x_hat = x - self.sigmoid(c_prev)     # 3
             r_t = self.read(x,x_hat,h_dec_prev)
@@ -86,7 +85,7 @@ class DrawModel(nn.Module):
         Lx = criterion(x_recons,x) * self.A * self.B
         Lz = 0
         kl_terms = [0] * T
-        for t in xrange(self.T):
+        for t in range(self.T):
             mu_2 = self.mus[t] * self.mus[t]
             sigma_2 = self.sigmas[t] * self.sigmas[t]
             logsigma = self.logsigmas[t]
@@ -96,8 +95,8 @@ class DrawModel(nn.Module):
         # Lz -= self.T / 2
         Lz = torch.mean(Lz)    ####################################################
         loss = Lz + Lx    # 12
+        print(f'Lz : {Lz}, Lx : {Lx}')
         return loss
-
 
     # correct
     def filterbank_matrices(self,a,mu_x,sigma2,epsilon=1e-9):
@@ -171,7 +170,7 @@ class DrawModel(nn.Module):
         h_dec_prev = Variable(torch.zeros(self.batch_size,self.dec_size),volatile = True)
         dec_state = Variable(torch.zeros(self.batch_size, self.dec_size),volatile = True)
 
-        for t in xrange(self.T):
+        for t in range(self.T):
             c_prev = Variable(torch.zeros(self.batch_size, self.A * self.B)) if t == 0 else self.cs[t - 1]
             z = self.normalSample()
             h_dec, dec_state = self.decoder(z, (h_dec_prev, dec_state))
@@ -181,9 +180,6 @@ class DrawModel(nn.Module):
         for img in self.cs:
             imgs.append(self.sigmoid(img).cpu().data.numpy())
         return imgs
-
-
-
 
 # model = DrawModel(10,5,5,10,5,128,128)
 # x = Variable(torch.ones(4,25))

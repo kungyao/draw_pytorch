@@ -1,7 +1,8 @@
+import torch
+
 from draw_model import DrawModel
 from config import *
 from utility import save_image
-import torch.nn.utils
 
 torch.set_default_tensor_type('torch.FloatTensor')
 

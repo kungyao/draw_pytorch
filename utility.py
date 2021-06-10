@@ -1,14 +1,15 @@
-import torch.autograd as autograd
-import torch
-from config import *
-import numpy as np
+import imageio
 import matplotlib.pyplot as plt
+import numpy as np
+import torch
+
+from config import *
 
 
 def Variable(data, *args, **kwargs):
     if USE_CUDA:
         data = data.cuda()
-    return autograd.Variable(data,*args, **kwargs)
+    return torch.autograd.Variable(data,*args, **kwargs)
 
 def unit_prefix(x, n=1):
     for i in range(n): x = x.unsqueeze(0)
@@ -34,8 +35,7 @@ def matmul(X,Y):
         results.append(result.unsqueeze(0))
     return torch.cat(results)
 
-
-
+# outupt range=[0, 1]
 def xrecons_grid(X,B,A):
 	"""
 	plots canvas for single time step
@@ -61,9 +61,15 @@ def xrecons_grid(X,B,A):
 	return img
 
 def save_image(x,count=0):
+    img_list = []
     for t in range(T):
         img = xrecons_grid(x[t],B,A)
-        plt.matshow(img, cmap=plt.cm.gray)
-        imgname = 'image/count_%d_%s_%d.png' % (count,'test', t)  # you can merge using imagemagick, i.e. convert -delay 10 -loop 0 *.png mnist.gif
-        plt.savefig(imgname)
-        print(imgname)
+        # plt.matshow(img, cmap=plt.cm.gray)
+        # imgname = 'image/count_%d_%s_%d.png' % (count,'test', t)  # you can merge using imagemagick, i.e. convert -delay 10 -loop 0 *.png mnist.gif
+        # plt.savefig(imgname)
+
+        # to range=[0, 255] and cast to uint8
+        img = (img*255).astype(np.uint8)
+        img_list.append(img)
+
+    imageio.mimsave(f'image/count_{count}_test.gif', img_list)
